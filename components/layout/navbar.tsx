@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,13 +17,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth/auth-client";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, LogOut, UserRound } from "lucide-react";
+import { LayoutDashboard, LogOut, UserRound, Sun, Moon } from "lucide-react";
 import { BRAND, NAV_LINKS } from "@/lib/constant";
 
 const Navbar = () => {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const { theme, setTheme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const resolvedTheme = theme === "system" ? systemTheme : theme;
 
   const initials = useMemo(() => {
     const source = session?.user?.name || session?.user?.email || "";
@@ -52,7 +62,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-canvas-border bg-canvas-base/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
@@ -69,7 +79,7 @@ const Navbar = () => {
             <Link
               key={link.label}
               href={link.href}
-              className="transition-colors hover:text-foreground"
+              className="transition-colors hover:text-canvas-text-contrast"
             >
               {link.label}
             </Link>
@@ -77,6 +87,27 @@ const Navbar = () => {
         </nav>
 
         <div className="flex items-center gap-3">
+          <div>
+            <button
+              type="button"
+              className="rounded-md p-2 hover:bg-primary-bg/50"
+              aria-label="Toggle theme"
+              onClick={() => {
+                if (!mounted) return;
+                setTheme(resolvedTheme === "dark" ? "light" : "dark");
+              }}
+            >
+              {mounted ? (
+                resolvedTheme === "dark" ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )
+              ) : (
+                <Sun className="h-4 w-4 opacity-0" />
+              )}
+            </button>
+          </div>
           <Separator
             orientation="vertical"
             className="hidden h-6 md:block"
